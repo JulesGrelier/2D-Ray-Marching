@@ -1,26 +1,12 @@
-use std::fmt::Debug;
-
 use macroquad::input::KeyCode;
 
 use crate::shape::{IsShape, Shape};
 use crate::shapes::{circle::Circle, rectangle::Rectangle};
 
-pub struct Input {
-    x : f32,
-    y : f32,
-    pub shape : Shape
-}
-
-#[derive(Debug, PartialEq)]
-pub enum Action {
-    CreateNewShape,
-    AddNewPos,
-}
-
 type DynShape = Box<dyn IsShape>;
 
 pub struct Game {
-    pub shapes : Vec<DynShape>,
+    shapes : Vec<DynShape>,
     proto_shape : Option<DynShape>,
     selected_shape : Option<Shape>,
 }
@@ -44,6 +30,11 @@ impl Game {
 
 
     pub fn modify_selected_key(&mut self, key : KeyCode) {
+
+        if key == KeyCode::Escape {
+            self.selected_shape = None;
+        }
+
         let shape = match key {
             KeyCode::C => Shape::Circle,
             KeyCode::R => Shape::Rectangle,
@@ -55,20 +46,17 @@ impl Game {
 
 
 
-    pub fn create_input(&self, x_mouse : f32, y_mouse : f32) -> Option<Input> {
-        // [selected_shape] already have the selected_shape, but it's better to centralize infos in one struct
-        return self.selected_shape.map(|shape| Input { x: x_mouse, y: y_mouse, shape });
+    pub fn has_a_selected_key(&self) -> bool {
+        self.selected_shape.is_some()
     }
 
 
 
-    pub fn return_action(&self, shape : Shape) -> Action {
-
-        let same_shape = self.proto_shape.as_ref().map_or( false, 
-            |x| x.return_shape() == shape
-        );
-
-        if same_shape { return Action::AddNewPos; } else { return Action::CreateNewShape; }
+    pub fn must_create_new_shape(&self) -> bool {
+        match &self.proto_shape {
+            Some(x) => x.return_shape() != self.selected_shape.unwrap(),
+            None => true
+        }
     }
 
 
@@ -82,14 +70,15 @@ impl Game {
 
 
 
-    pub fn get_new_pos(&mut self, input : &Input, action : Action) {
-        if action == Action::CreateNewShape {
-            self.proto_shape = Some(self.concretise_shape(input.shape));
+    pub fn get_new_pos(&mut self, pos_mouse : (f32, f32), new_shape : bool) {
+        if new_shape {
+            self.proto_shape = Some(self.concretise_shape(self.selected_shape.unwrap()));
         }
 
-        let enough_pos = self.proto_shape.as_mut().unwrap().get_new_pos(input.x, input.y);
+        let enough_pos = self.proto_shape.as_mut().unwrap().get_new_pos(pos_mouse.0, pos_mouse.1);
         if enough_pos { self.move_proto_shape(); }
     }
+
 
 
     fn move_proto_shape(&mut self) {
@@ -97,20 +86,3 @@ impl Game {
         self.shapes.push(young_shape);
     }
 }
-
-
-// #[cfg(test)]
-// mod tests {
-
-//     use super::*;
-
-//     #[test]
-//     fn check_response_to_input_shape_with_empty_transitory_shape() {
-//         let game = Game::new();
-
-
-//         assert_eq!(game.response_to_input(Shape::Circle), Action::CreateNewShape);
-//         assert_eq!(game.response_to_input(Shape::NoShape), Action::DoNothing);
-//     }
-
-// }
