@@ -32,7 +32,6 @@ async fn main() {
             game.get_new_pos(pos_mouse, new_shape);
         }
 
-        clear_background(BLUE);
         game.draw(pos_mouse);
         next_frame().await;
     }

@@ -33,6 +33,7 @@ impl Game {
 
         if key == KeyCode::Escape {
             self.selected_shape = None;
+            self.proto_shape = None;
         }
 
         let shape = match key {

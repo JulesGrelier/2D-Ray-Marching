@@ -54,7 +54,7 @@ impl IsShape for Circle {
     }
 
     fn draw(&self) {
-        draw_circle(self.x, self.y, self.radius, color::WHITE);
+        draw_circle_lines(self.x, self.y, self.radius, 1.0, WHITE);
     }
 
     fn distance_from(&self, x : f32, y : f32) -> f32 {

@@ -1,5 +1,5 @@
 use crate::shapes::*;
-use macroquad::{color::WHITE, shapes::draw_rectangle};
+use macroquad::shapes::draw_rectangle_lines;
 
 pub struct Rectangle {
 
@@ -39,30 +39,35 @@ impl IsShape for Rectangle {
             return false;
         }
 
-        self.width = self.x - x.abs();
-        self.height = self.y - y.abs();
+        let left = f32::min(self.x, x);
+        let right = f32::max(self.x, x);
+        let top = f32::min(self.y, y);
+        let bottom = f32::max(self.y, y);
 
-        if self.x > x { self.x = x }
-        if self.y < y { self.y = y }
+        self.x = left;
+        self.y = top;
+
+        self.width = right - left;
+        self.height = bottom - top;
 
         return true;
     }
 
     fn proto_draw(&self, x_mouse : f32, y_mouse : f32) {
 
-        let x = f32::max(self.x, x_mouse);
-        let y = f32::min(self.y, y_mouse);
+        let left = f32::min(self.x, x_mouse);
+        let right = f32::max(self.x, x_mouse);
+        let top = f32::min(self.y, y_mouse);
+        let bottom = f32::max(self.y, y_mouse);
 
+        let width = right - left;
+        let height = bottom - top;
 
-        let width = self.x - x_mouse.abs();
-        let height = self.y - y_mouse.abs();
-
-        draw_rectangle(x, y, width, height, WHITE);
-
+        draw_rectangle_lines(left, top, width, height, 2.0, WHITE);
     }
 
     fn draw(&self) {
-        draw_rectangle(self.x, self.y, self.width, self.height, WHITE);
+        draw_rectangle_lines(self.x, self.y, self.width, self.height, 2.0, WHITE);
     }
 
     fn distance_from(&self, x : f32, y : f32) -> f32 {
