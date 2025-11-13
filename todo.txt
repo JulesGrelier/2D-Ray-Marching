@@ -1,0 +1,3 @@
+implement SDF rectangle
+result pour SDF
+pas anim si pas shapes

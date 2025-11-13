@@ -1,4 +1,7 @@
+use macroquad::color::{SKYBLUE, RED};
 use macroquad::input::KeyCode;
+use macroquad::math::Vec2;
+use macroquad::shapes::{draw_circle, draw_circle_lines};
 
 use crate::shape::{IsShape, Shape};
 use crate::shapes::{circle::Circle, rectangle::Rectangle};
@@ -9,11 +12,15 @@ pub struct Game {
     shapes : Vec<DynShape>,
     proto_shape : Option<DynShape>,
     selected_shape : Option<Shape>,
+
+
+    player : Vec2,
+    orientation : f32,
 }
 
 impl Game {
     pub fn new() -> Self {
-        Self { shapes: Vec::new(), proto_shape: None, selected_shape: None }
+        Self { shapes: Vec::new(), proto_shape: None, selected_shape: None, player: Vec2::new(500.0, 500.0), orientation: 0.0}
     }
 
 
@@ -28,6 +35,8 @@ impl Game {
     }
 
 
+
+    /* --------------------------- SHAPES MANAGEMENT --------------------------- */
 
     pub fn modify_selected_key(&mut self, key : KeyCode) {
 
@@ -85,5 +94,61 @@ impl Game {
     fn move_proto_shape(&mut self) {
         let young_shape = self.proto_shape.take().unwrap();
         self.shapes.push(young_shape);
+    }
+
+
+
+    /* --------------------------- RAY-MARCHING MANAGEMENT --------------------------- */
+
+    fn distance_nearest_shape(&self, x : f32, y : f32) -> f32 {
+
+        let mut nearest_distance = 999999.9;
+
+        for shape in &self.shapes {
+            nearest_distance = f32::min(shape.distance_from(x, y), nearest_distance)
+        }
+
+        println!("La plus proche distance est : {}", nearest_distance);
+
+        nearest_distance
+    }
+
+
+
+    fn propagate(&self, pos : Vec2, distance : f32, degree : f32) -> Vec2 {
+        //Vec2::new(0.0, 0.0)
+        let dx = degree.to_radians().cos() * distance;
+        let dy = degree.to_radians().sin() * distance;
+
+        let delta = Vec2::new(dx, dy);
+
+        println!("{} -> {} à {}° pour une distance de {}", pos, pos+delta, degree, distance);
+
+        return pos + delta;
+    }
+
+
+
+    pub fn animation(&mut self) {
+
+        self.orientation += 0.2;
+
+        println!("----------------------------------------");
+
+        let mut pos = self.player;
+
+        draw_circle(pos.x, pos.y, 10.0, RED);
+
+        for _ in 0..20 {
+            let distance = self.distance_nearest_shape(pos.x, pos.y);
+
+            let new_pos = self.propagate(pos, distance, self.orientation);
+
+            draw_circle_lines(pos.x, pos.y, distance, 2.0, SKYBLUE);
+            draw_circle(new_pos.x, new_pos.y, 5.0, RED);
+
+            pos = new_pos;
+            if distance < 1.0 { break; }
+        }
     }
 }

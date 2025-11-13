@@ -3,6 +3,7 @@ use macroquad::prelude::*;
 mod shape;
 mod game;
 mod shapes;
+mod player;
 
 use game::Game;
 
@@ -33,6 +34,7 @@ async fn main() {
         }
 
         game.draw(pos_mouse);
+        game.animation();
         next_frame().await;
     }
 }
